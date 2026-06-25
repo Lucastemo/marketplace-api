@@ -9,6 +9,8 @@ import br.gov.sp.fatec.lucas.marketplace.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class ProductService {
@@ -18,6 +20,13 @@ public class ProductService {
     public ProductResponseDTO createProduct(ProductRequestDTO requestData){
         Product product = dtoToEntity(requestData);
         return entityToDto(productRepository.save(product));
+    }
+
+    public List<ProductResponseDTO> findProductsByCategoryId(Long categoryId){
+        List<Product> productsList = productRepository.findByCategoryId(categoryId);
+        return productsList.stream()
+                .map(this::entityToDto)
+                .toList();
     }
 
     public ProductResponseDTO entityToDto(Product productEntity){

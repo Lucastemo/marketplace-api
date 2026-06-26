@@ -9,11 +9,13 @@ import br.gov.sp.fatec.lucas.marketplace.entities.Product;
 import br.gov.sp.fatec.lucas.marketplace.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
@@ -23,6 +25,7 @@ public class ProductService {
         return entityToDto(productRepository.save(product));
     }
 
+    @Transactional(readOnly = true)
     public List<ProductResponseDTO> findProductsByCategoryId(Long categoryId){
         List<Product> productsList = productRepository.findByCategoryId(categoryId);
         return productsList.stream()
@@ -30,6 +33,7 @@ public class ProductService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public ProductResponseDTO findProductById(Long productId){
         return entityToDto(productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId)));
     }

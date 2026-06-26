@@ -1,5 +1,6 @@
 package br.gov.sp.fatec.lucas.marketplace.services;
 
+import br.gov.sp.fatec.lucas.marketplace.controllers.exceptions.ResourceNotFoundException;
 import br.gov.sp.fatec.lucas.marketplace.dtos.CategoryResponseDTO;
 import br.gov.sp.fatec.lucas.marketplace.dtos.ProductRequestDTO;
 import br.gov.sp.fatec.lucas.marketplace.dtos.ProductResponseDTO;
@@ -27,6 +28,28 @@ public class ProductService {
         return productsList.stream()
                 .map(this::entityToDto)
                 .toList();
+    }
+
+    public ProductResponseDTO findProductById(Long productId){
+        return entityToDto(productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId)));
+    }
+
+    public ProductResponseDTO updateProduct(Long productId, ProductRequestDTO requestData){
+        Category category = categoryService.findCategoryById(requestData.categoryId());
+
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+        product.setName(requestData.name());
+        product.setDescription(requestData.description());
+        product.setPrice(requestData.price());
+        product.setImgUrl(requestData.imgUrl());
+        product.setCategory(category);
+
+        return entityToDto(productRepository.save(product));
+    }
+
+    public void deleteProduct(Long productId){
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+        productRepository.delete(product);
     }
 
     public ProductResponseDTO entityToDto(Product productEntity){

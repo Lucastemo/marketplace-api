@@ -1,5 +1,6 @@
 package br.gov.sp.fatec.lucas.marketplace.services;
 
+import br.gov.sp.fatec.lucas.marketplace.controllers.exceptions.ResourceNotFoundException;
 import br.gov.sp.fatec.lucas.marketplace.dtos.CategoryResponseDTO;
 import br.gov.sp.fatec.lucas.marketplace.dtos.ProductRequestDTO;
 import br.gov.sp.fatec.lucas.marketplace.dtos.ProductResponseDTO;
@@ -245,5 +246,48 @@ class ProductServiceTest {
         assertDoesNotThrow(() -> productService.deleteProduct(1L));
 
         Mockito.verify(productRepository, Mockito.times(1)).delete(foundProduct);
+    }
+
+    @Test
+    void findProductById_ShouldReturnResourceNotFoundException_WhenIDDoesNotExist(){
+        Mockito.when(productRepository.findById(999L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.findProductById(999L);
+        });
+
+        assertEquals("Product not found with ID: 999", exception.getMessage());
+    }
+
+    @Test
+    void updateProduct_ShouldReturnResourceNotFoundException_WhenIDDoesNotExist(){
+        ProductRequestDTO updatedProduct = new ProductRequestDTO(
+                "Mechanical Keyboard",
+                "A Great Keyboard with RGB Lightning",
+                BigDecimal.valueOf(275.00),
+                "https://my-api-images.com/mechanical-keyboard.jpg",
+                2L
+        );
+
+        Mockito.when(productRepository.findById(999L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(999L, updatedProduct);
+        });
+
+        assertEquals("Product not found with ID: 999", exception.getMessage());
+    }
+
+    @Test
+    void deleteProduct_ShouldReturnResourceNotFoundException_WhenIDDoesNotExist(){
+        Mockito.when(productRepository.findById(999L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.deleteProduct(999L);
+        });
+
+        Mockito.verify(productRepository, Mockito.times(0)).delete(any(Product.class));
+
+        assertEquals("Product not found with ID: 999", exception.getMessage());
     }
 }

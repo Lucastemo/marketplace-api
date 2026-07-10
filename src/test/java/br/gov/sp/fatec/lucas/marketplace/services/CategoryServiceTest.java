@@ -28,44 +28,71 @@ class CategoryServiceTest {
 
     @Test
     void createCategory_ShouldReturnCategoryDTO_WhenSuccessful() {
-        CategoryRequestDTO testRequestDTO = new CategoryRequestDTO("Electronics");
+        Category savedCategory = createFakeCategory();
 
-        Category savedCategory = new Category();
-        savedCategory.setId(1L);
-        savedCategory.setName("Electronics");
+        CategoryRequestDTO testRequestDTO = entityToRequestDTO(savedCategory);
 
         Mockito.when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
 
         CategoryResponseDTO response = categoryService.createCategory(testRequestDTO);
 
         assertNotNull(response);
-        assertEquals(1L, response.id());
-        assertEquals("Electronics", response.name());
+
+        CategoryResponseDTO expectedResponse = createExpectedResponse(savedCategory);
+
+        assertEquals(expectedResponse, response);
     }
 
     @Test
     void findCategoryById_ShouldReturnCategoryEntity_WhenIDExists() {
-        Category storedCategory = new Category();
-        storedCategory.setId(1L);
-        storedCategory.setName("Electronics");
+        Long existentId = 1L;
+        Category storedCategory = createFakeCategory();
 
-        Mockito.when(categoryRepository.findById(1L)).thenReturn(Optional.of(storedCategory));
+        Mockito.when(categoryRepository.findById(existentId)).thenReturn(Optional.of(storedCategory));
 
-        Category response = categoryService.findCategoryById(1L);
+        Category response = categoryService.findCategoryById(existentId);
 
         assertNotNull(response);
-        assertEquals(1L, response.getId());
-        assertEquals("Electronics", response.getName());
+
+        assertEquals(storedCategory, response);
     }
 
     @Test
     void findCategoryById_ShouldReturnResourceNotFoundException_WhenIDDoesNotExist() {
-        Mockito.when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
+        Long nonexistentId = 999L;
+
+        Mockito.when(categoryRepository.findById(nonexistentId)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
-            categoryService.findCategoryById(999L);
+            categoryService.findCategoryById(nonexistentId);
         });
 
-        assertEquals("Category not found with ID: 999", exception.getMessage());
+        String expectedMessage = getExpectedCategoryNotFoundMessage(nonexistentId);
+
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    Category createFakeCategory(){
+        return new Category(
+                1L,
+                "Electronics"
+        );
+    }
+
+    CategoryRequestDTO entityToRequestDTO(Category category){
+        return new CategoryRequestDTO(
+                category.getName()
+        );
+    }
+
+    CategoryResponseDTO createExpectedResponse(Category category){
+        return new CategoryResponseDTO(
+                category.getId(),
+                category.getName()
+        );
+    }
+
+    String getExpectedCategoryNotFoundMessage(Long categoryId){
+        return "Category not found with ID: " + categoryId;
     }
 }
